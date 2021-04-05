@@ -1,8 +1,6 @@
-// Options
 const CLIENT_ID = '72138976933-o1jqigi2blfgnn48rstrq2g19rokaj6m.apps.googleusercontent.com';
-const DISCOVERY_DOCS = [
-  'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'
-];
+const API_KEY = 'AIzaSyCVLyNM4GrIi82AwkZO0oRZo7zqavuJevk';
+const DISCOVERY_DOCS = [  'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'];
 const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
 
 const authorizeButton = document.getElementById('authorize-button');
@@ -11,41 +9,25 @@ const content = document.getElementById('content');
 const channelForm = document.getElementById('channel-form');
 const channelInput = document.getElementById('channel-input');
 const videoContainer = document.getElementById('video-container');
-
 const defaultChannel = 'techguyweb';
 
-// Form submit and change channel
-channelForm.addEventListener('submit', e => {
-  e.preventDefault();
+channelForm.addEventListener('submit', e => {   e.preventDefault();       // Form submit and change channel
+                                                const channel = channelInput.value;
+                                                getChannel(channel); });
 
-  const channel = channelInput.value;
-
-  getChannel(channel);
-});
-
-// Load auth2 library
-function handleClientLoad() {
-  gapi.load("client:auth2", function() {
-    gapi.auth2.init({client_id: CLIENT_ID});
-  });
-}
+function handleClientLoad() {  gapi.load('client:auth2', initClient);}        // Load auth2 library
 
 // Init API client library and set up sign in listeners
 function initClient() {
   gapi.client
-    .init({
-      discoveryDocs: DISCOVERY_DOCS,
-      clientId: CLIENT_ID,
-      scope: SCOPES
-    })
-    .then(() => {
-      // Listen for sign in state changes
-      gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-      // Handle initial sign in state
-      updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-      authorizeButton.onclick = handleAuthClick;
-      signoutButton.onclick = handleSignoutClick;
-    });
+    .init({ apiKey: API_KEY,
+            discoveryDocs: DISCOVERY_DOCS,
+            clientId: CLIENT_ID,
+            scope: SCOPES   })
+    .then(() => { gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);   // Listen for sign in state changes
+                  updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());    // Handle initial sign in state
+                  authorizeButton.onclick = handleAuthClick;
+                  signoutButton.onclick = handleSignoutClick;  });
 }
 
 // Update UI sign in state changes
@@ -64,31 +46,19 @@ function updateSigninStatus(isSignedIn) {
   }
 }
 
-// Handle login
-function handleAuthClick() {
-  return gapi.auth2.getAuthInstance()
-      .signIn({scope: "https://www.googleapis.com/auth/youtube.readonly"})
-      .then(function() { console.log("Sign-in successful"); },
-            function(err) { console.error("Error signing in", err); });
-}
+function handleAuthClick() {  gapi.auth2.getAuthInstance().signIn();}       // Handle login
+function handleSignoutClick() {  gapi.auth2.getAuthInstance().signOut();}     // Handle logout
 
-// Handle logout
-function handleSignoutClick() {
-  gapi.auth2.getAuthInstance().signOut();
-}
 
-// Display channel data
-function showChannelData(data) {
-  const channelData = document.getElementById('channel-data');
-  channelData.innerHTML = data;
-}
+function showChannelData(data) {const channelData = document.getElementById('channel-data');        // Display channel data
+                                      channelData.innerHTML = data;}
 
 // Get channel from API
 function getChannel(channel) {
   gapi.client.youtube.channels
     .list({
       part: 'snippet,contentDetails,statistics',
-      id: [channel]
+      forUsername: channel
     })
     .then(response => {
       console.log(response);
@@ -98,21 +68,13 @@ function getChannel(channel) {
         <ul class="collection">
           <li class="collection-item">Title: ${channel.snippet.title}</li>
           <li class="collection-item">ID: ${channel.id}</li>
-          <li class="collection-item">Subscribers: ${numberWithCommas(
-            channel.statistics.subscriberCount
-          )}</li>
-          <li class="collection-item">Views: ${numberWithCommas(
-            channel.statistics.viewCount
-          )}</li>
-          <li class="collection-item">Videos: ${numberWithCommas(
-            channel.statistics.videoCount
-          )}</li>
+          <li class="collection-item">Subscribers: ${numberWithCommas(channel.statistics.subscriberCount)}</li>
+          <li class="collection-item">Views: ${numberWithCommas(channel.statistics.viewCount)}</li>
+          <li class="collection-item">Videos: ${numberWithCommas(channel.statistics.videoCount)}</li>
         </ul>
         <p>${channel.snippet.description}</p>
         <hr>
-        <a class="btn grey darken-2" target="_blank" href="https://youtube.com/${
-          channel.snippet.customUrl
-        }">Visit Channel</a>
+        <a class="btn grey darken-2" target="_blank" href="https://youtube.com/${channel.snippet.customUrl}">Visit Channel</a>
       `;
       showChannelData(output);
 
@@ -123,9 +85,7 @@ function getChannel(channel) {
 }
 
 // Add commas to number
-function numberWithCommas(x) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
+function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');}
 
 function requestVideoPlaylist(playlistId) {
   const requestOptions = {
